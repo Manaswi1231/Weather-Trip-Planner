@@ -1,33 +1,61 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaHome, FaHeart, FaCalendar } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  return (
-    <nav className="bg-blue-600 p-4 text-white min-h-screen w-64">
-      <h1 className="font-bold text-xl mb-8">Weather Trip Planner</h1>
+  const { user, logout } = useAuth();
 
-      <div className="flex flex-col space-y-6">
-        <Link to="/" className="flex items-center space-x-3 hover:underline">
-          <FaHome />
-          <span>Home</span>
+  const displayName =
+    typeof user === "string" ? user : user?.username || "Guest";
+
+  return (
+    <nav className="flex justify-between items-center bg-blue-600 p-4 text-white">
+      <div className="text-xl font-semibold">
+        <Link to="/">🌤️ Weather Trip Planner</Link>
+      </div>
+
+      <div className="space-x-4 flex items-center">
+        <Link to="/" className="hover:underline">
+          Home
+        </Link>
+
+        <Link to="/places" className="hover:underline">
+          Places
         </Link>
 
         <Link
           to="/favorites"
-          className="flex items-center space-x-3 hover:underline"
+          className="text-white px-3 py-1 bg-blue-500 rounded hover:bg-blue-700"
         >
-          <FaHeart />
-          <span>View Favorites</span>
+          View Favorites
         </Link>
 
-        <Link
-          to="/itinerary"
-          className="flex items-center space-x-3 hover:underline"
-        >
-          <FaCalendar />
-          <span>View Itinerary</span>
-        </Link>
+        {user ? (
+          <>
+            <span className="font-semibold">Hi, {displayName}</span>
+            <button
+              onClick={logout}
+              className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="bg-green-500 px-3 py-1 rounded hover:bg-green-600"
+            >
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-200"
+            >
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

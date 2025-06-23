@@ -5,15 +5,17 @@ const ItineraryContext = createContext();
 export const ItineraryProvider = ({ children }) => {
   const [itinerary, setItinerary] = useState([]);
 
-  const addPlan = (place, notes) => {
-    setItinerary([...itinerary, { place, notes }]);
-  };
-
   return (
-    <ItineraryContext.Provider value={{ itinerary, addPlan }}>
+    <ItineraryContext.Provider value={{ itinerary, setItinerary }}>
       {children}
     </ItineraryContext.Provider>
   );
 };
 
-export const useItinerary = () => useContext(ItineraryContext);
+export const useItinerary = () => {
+  const context = useContext(ItineraryContext);
+  if (!context) {
+    throw new Error("useItinerary must be used within an ItineraryProvider");
+  }
+  return context;
+};

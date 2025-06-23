@@ -1,30 +1,33 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import WeatherPage from "./pages/WeatherPage";
 import RouteMapPage from "./pages/RouteMapPage";
-import FavoritesList from "./components/FavoritesList";
 import FavoritesPage from "./pages/FavoritesPage";
-import ItineraryPlanner from "./components/ItineraryPlanner";
-import ItineraryPage from "./pages/ItineraryPage";
 import VisitingPlacesPage from "./pages/VisitingPlacesPage";
-import Navbar from "./components/Navbar";
+import ItineraryPage from "./pages/ItineraryPage";
 
 const App = () => {
+  const location = useLocation();
+  const hideNav = ["/login", "/register"].includes(location.pathname);
+
   return (
-    <Router>
-      <Navbar />
+    <div>
+      {!hideNav && <Navbar />}
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/weather" element={<WeatherPage />} />
         <Route path="/route-map" element={<RouteMapPage />} />
-        <Route path="/favorites" element={<FavoritesList />} />
         <Route path="/favorites" element={<FavoritesPage />} />
-        <Route path="/itinerary" element={<ItineraryPlanner />} />
-        <Route path="/itinerary" element={<ItineraryPage />} />
         <Route path="/places" element={<VisitingPlacesPage />} />
+        <Route path="/itinerary" element={<ItineraryPage />} />
       </Routes>
-    </Router>
+    </div>
   );
 };
 

@@ -4,7 +4,6 @@ import { ClipLoader } from "react-spinners";
 import { useLocation } from "react-router-dom";
 import { getImageForPlace } from "../utils/getImage";
 import MapView from "../components/MapView";
-
 import { useFavorites } from "../context/FavoritesContext";
 
 const GEO_KEY = "559f2b49894246ec960e6e7990a09295";
@@ -21,7 +20,7 @@ const VisitingPlacesPage = () => {
   const fetchFromGeoapify = async (lat, lon) => {
     try {
       const res = await axios.get(
-        `https://api.geoapify.com/v2/places?categories=tourism&filter=circle:${lon},${lat},30000&limit=20&apiKey=${GEO_KEY}`
+        `https://api.geoapify.com/v2/places?categories=tourism.sights,entertainment,cultural,religion,natural&filter=circle:${lon},${lat},30000&limit=50&apiKey=${GEO_KEY}`
       );
       return res.data.features;
     } catch (e) {
@@ -33,14 +32,14 @@ const VisitingPlacesPage = () => {
   const fetchFromWikipedia = async (lat, lon) => {
     try {
       const res = await axios.get(
-        `https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gsradius=30000&gscoord=${lat}|${lon}&gslimit=20&format=json`
+        `https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gsradius=30000&gscoord=${lat}|${lon}&gslimit=50&format=json`
       );
       const pages = res.data.query?.geosearch || [];
       return pages.map((p) => ({
         properties: {
           name: p.title,
           formatted: `Approx. ${p.dist}m away`,
-          categories: ["wikipedia"],
+          categories: ["Wikipedia"],
         },
         geometry: {
           coordinates: [lon, lat],
@@ -54,27 +53,26 @@ const VisitingPlacesPage = () => {
 
   useEffect(() => {
     const fetchPlaces = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        console.clear();
-
         const geo = await axios.get(
           `https://api.geoapify.com/v1/geocode/search?text=${location}&apiKey=${GEO_KEY}`
         );
         const prop = geo.data.features[0]?.properties;
-        if (!prop) throw new Error("No geocode result");
+        if (!prop) throw new Error("No location found");
 
         const { lat, lon } = prop;
         setCenterLat(lat);
         setCenterLon(lon);
 
-        let raw = await fetchFromGeoapify(lat, lon);
-        if (!raw || raw.length === 0) {
-          raw = await fetchFromWikipedia(lat, lon);
+        let rawPlaces = await fetchFromGeoapify(lat, lon);
+
+        if (!rawPlaces || rawPlaces.length === 0) {
+          rawPlaces = await fetchFromWikipedia(lat, lon);
         }
 
         const seen = new Set();
-        const filtered = raw.filter((place) => {
+        const filtered = rawPlaces.filter((place) => {
           const name = place.properties.name;
           return (
             name &&
@@ -93,7 +91,7 @@ const VisitingPlacesPage = () => {
 
         setPlaces(enriched);
       } catch (e) {
-        console.error("Error fetching places:", e);
+        console.error("Fetching places failed:", e);
         setPlaces([]);
       } finally {
         setLoading(false);
@@ -113,7 +111,7 @@ const VisitingPlacesPage = () => {
         </div>
       ) : places.length === 0 ? (
         <p className="text-center mt-10 text-gray-500">
-          No places found. Try another city or expand the radius.
+          No places found. Try a nearby city or expand radius.
         </p>
       ) : (
         <>
@@ -137,7 +135,6 @@ const VisitingPlacesPage = () => {
                 <p className="text-xs text-blue-600 mt-1">
                   Category: {place.properties.categories?.[0]}
                 </p>
-
                 <button
                   onClick={() => addFavorite(place)}
                   className="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
